@@ -1,35 +1,58 @@
+<template>
+  <v-card class="mx-auto h-100 d-flex flex-column" elevation="2" rounded="lg">
+    <v-img
+      :src="destino.image"
+      :alt="destino.imageAlt"
+      height="200"
+      cover
+    />
+    
+    <v-card-item>
+      <v-card-title class="font-weight-bold text-h6">
+        {{ destino.name }}
+      </v-card-title>
+
+      <v-card-subtitle>
+        <v-icon icon="mdi-map-marker" size="small" color="primary" class="me-1" />
+        {{ destino.country }} • {{ destino.region }}
+      </v-card-subtitle>
+    </v-card-item>
+
+    <v-card-text class="flex-grow-1">
+      <p class="text-body-2 text-medium-emphasis mb-2">
+        {{ destino.description }}
+      </p>
+      <v-chip size="x-small" color="secondary" variant="tonal">
+        {{ destino.duration }}
+      </v-chip>
+    </v-card-text>
+
+    <v-divider />
+
+    <v-card-actions class="pa-4 d-flex justify-space-between align-center">
+      <div>
+        <span class="text-caption text-medium-emphasis d-block">Desde</span>
+        <span class="text-h6 font-weight-bold text-primary">
+          ${{ destino.price.toLocaleString() }} COP
+        </span>
+      </div>
+      
+      <v-btn
+        color="primary"
+        variant="flat"
+        class="text-white"
+        :to="`/reservar?destino=${destino.id}`"
+      >
+        Reservar
+      </v-btn>
+    </v-card-actions>
+  </v-card>
+</template>
+
 <script setup lang="ts">
 import type { Destination } from '~/stores/travel'
 
-defineProps<{ destination: Destination }>()
-const { formatPrice } = useCurrency()
+defineProps<{
+  destino: Destination
+}>()
 </script>
-
-<template>
-  <v-card class="destination-card" variant="flat">
-    <div class="position-relative">
-      <v-img
-        class="destination-image"
-        :src="destination.image"
-        :alt="destination.imageAlt"
-        cover
-      />
-      <span class="destination-tag">{{ destination.highlight }}</span>
-    </div>
-    <div class="destination-body">
-      <span class="destination-country">{{ destination.country }} · {{ destination.region }}</span>
-      <h3 class="destination-title">{{ destination.name }}</h3>
-      <p class="destination-description">{{ destination.description }}</p>
-      <div class="destination-meta">
-        <span class="destination-duration">{{ destination.duration }} · por persona</span>
-        <span class="destination-price">
-          {{ formatPrice(destination.price) }}
-          <small>desde</small>
-        </span>
-      </div>
-      <v-btn class="btn-primary mt-4" color="primary" :to="`/reservar?destino=${destination.id}`" variant="flat" block>
-        Consultar viaje
-      </v-btn>
-    </div>
-  </v-card>
-</template>

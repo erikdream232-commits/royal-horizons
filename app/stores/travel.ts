@@ -1,3 +1,5 @@
+import { defineStore } from 'pinia'
+
 export interface Destination {
   id: number
   name: string
@@ -19,34 +21,37 @@ export const useTravelStore = defineStore('travel', () => {
   const loading = ref(false)
   const loaded = ref(false)
 
-  const regions = computed(() => ['Todas', ...new Set(destinations.value.map(destination => destination.region))])
+  const regions = computed(() => [
+    'Todas',
+    ...new Set(destinations.value.map(d => d.region).filter(Boolean))
+  ])
+
   const filteredDestinations = computed(() => {
-    const normalizedSearch = search.value.trim().toLocaleLowerCase()
+    // Convierte el valor a string seguro aunque sea null al limpiar el buscador
+    const query = (search.value || '').trim().toLowerCase()
 
-    return destinations.value.filter((destination) => {
-      const matchesSearch = !normalizedSearch
-        || `${destination.name} ${destination.country} ${destination.description}`.toLocaleLowerCase().includes(normalizedSearch)
-      const matchesRegion = region.value === 'Todas' || destination.region === region.value
-      const matchesPrice = maxPrice.value === null || destination.price <= maxPrice.value
+    if (!Array.isArray(destinations.value)) return []
 
-      return matchesSearch && matchesRegion && matchesPrice
+    return destinations.value.filter(d => {
+      if (!d) return false
+      const matchSearch = (d.name?.toLowerCase() || '').includes(query) || 
+                          (d.country?.toLowerCase() || '').includes(query)
+      const matchRegion = region.value === 'Todas' || d.region === region.value
+      return matchSearch && matchRegion
     })
   })
 
-  async function loadDestinations() {
-    if (loaded.value || loading.value) return
-
+  const cargarDestinos = async () => {
     loading.value = true
     try {
-      destinations.value = await $fetch<Destination[]>('/api/destinos')
+      const data = await $fetch<Destination[]>('/api/destinos')
+      destinations.value = data || []
       loaded.value = true
+    } catch (err) {
+      console.error('Error cargando destinos:', err)
     } finally {
       loading.value = false
     }
-  }
-
-  function destinationById(id: number) {
-    return destinations.value.find(destination => destination.id === id)
   }
 
   return {
@@ -55,9 +60,9 @@ export const useTravelStore = defineStore('travel', () => {
     region,
     maxPrice,
     loading,
+    loaded,
     regions,
     filteredDestinations,
-    loadDestinations,
-    destinationById,
+    cargarDestinos
   }
 })
